@@ -1,1 +1,178 @@
+import pickle
+
+class Employee:
+    def __init__(self, name, id_number, department, job_title, basic_salary):
+        self.name = name
+        self.id_number = id_number
+        self.department = department
+        self.job_title = job_title
+        self.basic_salary = basic_salary
+        self.sales = []# an empty list to hold sales made by this employee
+
+    def add_sale(self, car, sale_price):
+      # add a sale made by this employee
+        self.sales.append((car, sale_price))
+
+    def calculate_salary(self):
+      # calculate the employee's salary based on their basic salary and sales commission
+        total_sales = sum(sale[1] for sale in self.sales)
+        sales_commission = total_sales * 0.065
+        manager_commission = total_sales * 0.035
+        company_profit = total_sales - sales_commission - manager_commission
+        return self.basic_salary + sales_commission, manager_commission, company_profit
+
+class Manager(Employee):
+    def __init__(self, name, id_number, department, job_title, basic_salary):
+        super().__init__(name, id_number, department, job_title, basic_salary)
+        self.salespersons = []
+
+    def add_salesperson(self, salesperson):
+      # add a salesperson to the list of salespersons managed by this manager
+        self.salespersons.append(salesperson)
+
+class Salesperson(Employee):
+    def __init__(self, name, id_number, department, job_title, basic_salary):
+        super().__init__(name, id_number, department, job_title, basic_salary)
+
+        #calculate sales person profit 
+
+        sale_price = 25000  # the sale price of the car
+cost_price = 20000  # the cost price of the car
+profit_percentage = 6.5  # the percentage of profit that goes to the salesperson
+
+profit = sale_price - cost_price  # calculate the dealership's profit
+salesperson_profit = (profit * profit_percentage) / 100  # calculate the salesperson's profit
+
+print(f"The dealership's profit is: ${profit}")
+print(f"The salesperson's profit is: ${salesperson_profit}")
+
+class Car:
+    def __init__(self, name, id_number, price, car_type):
+        self.name = name
+        self.id_number = id_number
+        self.price = price
+        self.car_type = car_type
+
+class CarSalesSystem:
+    def __init__(self):
+        self.employees = {}
+        self.cars = {}
+
+    def add_employee(self, employee):
+        self.employees[employee.id_number] = employee
+
+    def delete_employee(self, id_number):
+        if id_number in self.employees:
+            del self.employees[id_number]
+
+    def modify_employee(self, id_number, employee):
+        if id_number in self.employees:
+            self.employees[id_number] = employee
+
+    def add_car(self, car):
+        self.cars[car.id_number] = car
+
+    def delete_car(self, id_number):
+        if id_number in self.cars:
+            del self.cars[id_number]
+
+    def modify_car(self, id_number, car):
+        if id_number in self.cars:
+            self.cars[id_number] = car
+
+    def display_employee_details(self, id_number):
+        if id_number in self.employees:
+            employee = self.employees[id_number]
+            print(f"Name: {employee.name}")
+            print(f"ID Number: {employee.id_number}")
+            print(f"Department: {employee.department}")
+            print(f"Job Title: {employee.job_title}")
+            print(f"Basic Salary: {employee.basic_salary}")
+        else:
+            print(f"Employee with ID number {id_number} not found.")
+
+    def display_car_details(self, id_number):
+        if id_number in self.cars:
+            car = self.cars[id_number]
+            print(f"Name: {car.name}")
+            print(f"ID Number: {car.id_number}")
+            print(f"Price: {car.price}")
+            print(f"Type: {car.car_type}")
+        else:
+            print(f"Car with ID number {id_number} not found.")
+
+    def display_sales_details(self, id_number):
+        if id_number in self.employees:
+            employee = self.employees[id_number]
+            print(f"Sales Details for {employee.name}:")
+            for sale in employee.sales:
+                car_name = sale[0].name
+                sale_price = sale[1]
+                print(f"Car Name: {car_name}, Sale Price: {sale_price}")
+        else:
+            print(f"Employee with ID number {id_number} not found.")
+import unittest
+
+class TestCarSalesSystem(unittest.TestCase):
+
+    def setUp(self):
+        self.system = CarSalesSystem()
+
+    def test_add_employee(self):
+        employee = Employee("susan meyers", "47899", "accounting", "manager", 37500)
+        self.system.add_employee(employee)
+        self.assertIn(employee, self.system.employees.values())
+
+    def test_delete_employee(self):
+        employee = Employee("Mark Jones ", "39119", "IT", "Salesperson", 24000)
+        self.system.add_employee(employee)
+        self.system.delete_employee("12345")
+        self.assertNotIn(employee, self.system.employees.values())
+
+    def test_modify_employee(self):
+        employee = Employee("Joy Rogers", "81774", "Manufacturing", "Salesperson", 24,000)
+        self.system.add_employee(employee)
+        modified_employee = Employee("alanoud", "77777", "Sales", "Salesperson", 100000)
+        self.system.modify_employee("12345", modified_employee)
+        self.assertIn(modified_employee, self.system.employees.values())
+        self.assertNotIn(employee, self.system.employees.values())
+
+    def test_add_car(self):
+        car = Car("Jazz", "VX3",55,000, "Hatch")
+        self.system.add_car(car)
+        self.assertIn(car, self.system.cars.values())
+
+    def test_delete_car(self):
+        car = Car("Mark3", "SX3 ",84,000, "Sedan")
+        self.system.add_car(car)
+        self.system.delete_car("12345")
+        self.assertNotIn(car, self.system.cars.values())
+
+    def test_modify_car(self):
+        car = Car("Wagoner ", "ZX3", 125,000, "SUV")
+        self.system.add_car(car)
+        modified_car = Car("bubble_pink_fararri", "7777", 25000, "cope")
+        self.system.modify_car("12345", modified_car)
+        self.assertIn(modified_car, self.system.cars.values())
+        self.assertNotIn(car, self.system.cars.values())
+
+    def test_display_employee_details(self):
+        employee = Employee("susan meyers", "47899", "accounting", "manager", 37500)
+        self.system.add_employee(employee)
+        expected_output = f"Name: {employee.name}\nID Number: {employee.id_number}\nDepartment: {employee.department}\nJob Title: {employee.job_title}\nBasic Salary: {employee.basic_salary}\n"
+        self.assertEqual(self.system.display_employee_details("47899"), expected_output)
+
+    def test_display_car_details(self):
+        car = Car("bubble_pink_fararri", "7777", 25000, "cope")
+        self.system.add_car(car)
+        expected_output = f"Name: {car.name}\nID Number: {car.id_number}\nPrice: {car.price}\nType: {car.car_type}\n"
+        self.assertEqual(self.system.display_car_details("12345"), expected_output)
+
+    def test_display_sales_details(self):
+          employee = Employee(("susan meyers", "47899", "accounting", "manager", 37500), 30000)
+          employee.add_sale(Car("bubble_pink_fararri", "7777", 25000, "cope"), 25000)
+          employee.add_sale(Car("Honda Civic", "67890", 25000, "Sedan"), 30000)
+          self.system.add_employee(employee)
+          expected_output = f"Sales Details for {employee.name}:\nCar: Toyota Corolla\nSale Price: 25000\nCar: Honda Civic\nSale Price: 30000\n"
+          self.assertEqual(self.system.display_sales_details("12345"), expected_output)
 
