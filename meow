@@ -1,3 +1,4 @@
+
 import pickle
 
 class Employee:
@@ -7,19 +8,24 @@ class Employee:
         self.department = department
         self.job_title = job_title
         self.basic_salary = basic_salary
-        self.sales = []# an empty list to hold sales made by this employee
+        self.sales = []  # an empty list to hold sales made by this employee
 
     def add_sale(self, car, sale_price):
-      # add a sale made by this employee
+        # add a sale made by this employee
         self.sales.append((car, sale_price))
 
-    def calculate_salary(self):
-      # calculate the employee's salary based on their basic salary and sales commission
+    def calculate_sales_commission(self):
+        # calculate the employee's sales commission based on their sales for the month
         total_sales = sum(sale[1] for sale in self.sales)
         sales_commission = total_sales * 0.065
-        manager_commission = total_sales * 0.035
-        company_profit = total_sales - sales_commission - manager_commission
-        return self.basic_salary + sales_commission, manager_commission, company_profit
+        return sales_commission
+
+    def calculate_salary(self):
+        # calculate the employee's salary based on their basic salary and sales commission
+        sales_commission = self.calculate_sales_commission()
+        company_profit = sum(sale[2] for sale in self.sales)
+        return self.basic_salary + sales_commission, company_profit
+
 
 class Manager(Employee):
     def __init__(self, name, id_number, department, job_title, basic_salary):
@@ -27,24 +33,45 @@ class Manager(Employee):
         self.salespersons = []
 
     def add_salesperson(self, salesperson):
-      # add a salesperson to the list of salespersons managed by this manager
+        # add a salesperson to the list of salespersons managed by this manager
         self.salespersons.append(salesperson)
+
+    def calculate_sales_commission(self):
+        # calculate the manager's sales commission based on the total sales of their salespersons for the month
+        total_sales = sum(salesperson.calculate_sales_commission() for salesperson in self.salespersons)
+        sales_commission = total_sales * 0.1
+        return sales_commission
+
+    def calculate_salary(self):
+        # calculate the manager's salary based on their basic salary and sales commission
+        sales_commission = self.calculate_sales_commission()
+        company_profit = sum(salesperson.calculate_sales_commission() for salesperson in self.salespersons) * 0.935
+        return self.basic_salary + sales_commission, company_profit
+
 
 class Salesperson(Employee):
     def __init__(self, name, id_number, department, job_title, basic_salary):
         super().__init__(name, id_number, department, job_title, basic_salary)
 
-        #calculate sales person profit 
+    def add_sale(self, car, sale_price):
+        # add a sale made by this salesperson
+        cost_price = car.price  # the cost price of the car
+        profit_percentage = 6.5  # the percentage of profit that goes to the sales
 
-        sale_price = 25000  # the sale price of the car
-cost_price = 20000  # the cost price of the car
-profit_percentage = 6.5  # the percentage of profit that goes to the salesperson
 
-profit = sale_price - cost_price  # calculate the dealership's profit
-salesperson_profit = (profit * profit_percentage) / 100  # calculate the salesperson's profit
 
-print(f"The dealership's profit is: ${profit}")
-print(f"The salesperson's profit is: ${salesperson_profit}")
+
+
+    def add_sale(self, car, sale_price):
+        # add a sale made by this salesperson
+        cost_price = car.price  # the cost price of the car
+        profit_percentage = 6.5  # the percentage of profit that goes to the salesperson
+
+        profit = sale_price - cost_price  # calculate the dealership's profit
+        salesperson_profit = (profit * profit_percentage) / 100  # calculate the salesperson's profit
+
+        self.sales.append((car, sale_price, salesperson_profit))
+
 
 class Car:
     def __init__(self, name, id_number, price, car_type):
@@ -111,6 +138,8 @@ class CarSalesSystem:
                 print(f"Car Name: {car_name}, Sale Price: {sale_price}")
         else:
             print(f"Employee with ID number {id_number} not found.")
+
+
 import unittest
 
 class TestCarSalesSystem(unittest.TestCase):
@@ -175,4 +204,3 @@ class TestCarSalesSystem(unittest.TestCase):
           self.system.add_employee(employee)
           expected_output = f"Sales Details for {employee.name}:\nCar: Toyota Corolla\nSale Price: 25000\nCar: Honda Civic\nSale Price: 30000\n"
           self.assertEqual(self.system.display_sales_details("12345"), expected_output)
-
